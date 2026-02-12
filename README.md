@@ -1,6 +1,6 @@
-# CLI Todo List (Go) 📝
+# Mini Go projects (Go) 📝
 
-A simple command-line interface task manager built with **Go**. 
+A simple go projects. 
 
 This project is a part of my Go learning journey. It allows you to manage your tasks directly from the terminal.
 
