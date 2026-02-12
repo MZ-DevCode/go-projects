@@ -1,26 +1,33 @@
 package main
 
 import (
-	"fmt"
-	"net"
-	"time"
+    "fmt"
+    "net"
+    "time"
 )
 
 func main() {
-	target := "127.0.0.1"
+    target := "127.0.0.1" // Цель — наш собственный комп
 
-	for port := 1; port <= 65535; port++ {
-		go func(p int) {
-			addr := fmt.Sprintf("%s:%d", target, p)
-			conn, err := net.DialTimeout("tcp", addr, 200*time.Millisecond)
-			if err == nil {
-				fmt.Printf("Port %d is OPEN\n", p)
-				conn.Close()
-			}
-		}(port)
+    for port := 1; port <= 65535; port++ {
+        // "go" запускает проверку порта в фоне (горутина)
+        // Это позволяет проверять тысячи портов одновременно
+        go func(p int) {
+            addr := fmt.Sprintf("%s:%d", target, p)
+            // Пробуем подключиться. Тайм-аут 0.2 сек, чтобы не ждать вечно
+            conn, err := net.DialTimeout("tcp", addr, 200*time.Millisecond)
+            
+            if err == nil {
+                // Если ошибки нет — порт открыт
+                fmt.Printf("Port %d is OPEN\n", p)
+                conn.Close() // Обязательно закрываем соединение
+            }
+        }(port) // Передаем текущий порт в анонимную функцию
 
-		time.Sleep(100 * time.Microsecond)
-	}
-
-	time.Sleep(2 * time.Second)
+        // Пауза 0.1 мс между запусками, чтобы ОС не заблокировала сканер
+        time.Sleep(100 * time.Microsecond)
+    }
+    
+    // В конце этого кода не хватает ожидания (time.Sleep), 
+    // иначе программа закроется раньше, чем придут ответы.
 }
