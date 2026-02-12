@@ -4,10 +4,16 @@ import "fmt"
 
 func reverse(s string) string{
 	runes := []rune(s)
-	
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1{
+			runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
 }
 
 func main(){
-	fmt.Println(reverse("hello"))
-	fmt.Println(reverse("TTg"))
+	var text string
+	fmt.Print("Text to reverse: ")
+	fmt.Scan(&text)
+	result := reverse(text)
+	fmt.Println("Result: ", result)
 }
