@@ -1,31 +1,27 @@
-# Mini Go projects (Go) 📝
+# Go Development & Systems Research 🚀
 
-A simple go projects. 
+This repository serves as a comprehensive workspace for Go development, covering fundamental algorithms, concurrent networking tools, and embedded systems programming. The projects within demonstrate a transition from basic logic to high-performance system utilities.
 
-This project is a part of my Go learning journey. It allows you to manage your tasks directly from the terminal.
+## 📁 Repository Overview
 
-## ✨ Features
-- **Add tasks**: Quickly add new items to your list.
-- **View tasks**: See all your tasks in a numbered format.
-- **Clean UI**: Simple and intuitive menu-based navigation.
-- **Fast**: High performance thanks to Go's efficiency.
+The codebase is structured to showcase various aspects of the Go ecosystem:
+- **Networking & Security**: Multi-threaded tools designed for rapid network reconnaissance and socket manipulation.
+- **Algorithms & Data Structures**: Optimized implementations of string processing (Unicode/Rune), sorting, and search patterns.
+- **Terminal Applications**: Lightweight CLI tools built for efficiency and direct user interaction.
 
-## 🚀 How to Run
-1. Make sure you have [Go](https://go.dev) installed on your system.
-2. Clone this repository:
+## 🚀 Getting Started
 
-   ```
-   git clone https://github.com/MZ-DevCode/go-projects
-   ```
+### 1. Installation
+Ensure you have [Go 1.21+](https://go.dev) installed. Clone the repository to your local machine:
+```
+git clone https://github.com/MZ-DevCode/go-projects/...
+```
+```
+cd go-projects
+```
+### 2. Local Execution
+To run any algorithm or tool on your host machine:
+```
+go run path/to/project.go
+```
 
-3. Navigate to the project folder:
-
-   ```
-   cd todo-app
-   ```
-
-4. Run the application:
-
-   ```
-   go run main.go
-   ```
