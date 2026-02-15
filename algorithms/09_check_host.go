@@ -3,15 +3,27 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 )
 
 func main() {
-	url := "https://www.google.com"
-	resp, err := http.Get(url)
-	if err != nil {
-		fmt.Println("inaccessible website", err)
-		return
+	var url string
+
+	fmt.Print("Enter target URL: ")
+	fmt.Scan(&url)
+
+	client := http.Client{
+		Timeout: 5 * time.Second,
 	}
 
-	fmt.Printf("Site: %s\nStatus: %d\n", url, resp.StatusCode)
+	resp, err := client.Get(url)
+	if err != nil {
+		fmt.Printf("Connection error: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	fmt.Printf("\n[+] Target: %s\n", url)
+	fmt.Printf("Status Code: %d\n", resp.StatusCode)
+	fmt.Printf("Server Info: %s\n", resp.Header.Get("Server"))
 }
