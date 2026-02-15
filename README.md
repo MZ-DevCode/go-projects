@@ -1,6 +1,6 @@
 # Go Development & Systems Research 🚀
 
-This repository serves as a comprehensive workspace for Go development, covering fundamental algorithms, concurrent networking tools, and embedded systems programming. The projects within demonstrate a transition from basic logic to high-performance system utilities.
+This repository serves as a comprehensive workspace for Go development, covering fundamental algorithms, concurrent networking tools, and embedded systems programming. The projects within demonstrate a transition from basic logic to high-performance system utilities
 
 ## 📁 Repository Overview
 
