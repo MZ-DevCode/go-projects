@@ -53,7 +53,7 @@ func main() {
 
 	fmt.Print(target, ip, status, server, powered, csp, hsts, cookies)
 
-	text := target + ip +status + server + powered + csp + hsts + cookies
+	text := target + ip + status + server + powered + csp + hsts + cookies
 
 
 	file, err := os.OpenFile("scan.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
