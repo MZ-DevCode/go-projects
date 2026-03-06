@@ -16,7 +16,7 @@ func main(){
 	mux := http.NewServeMux()
 
 	rdb = redis.NewClient(&redis.Options{
-		Addr: "localhost: 6379",
+		Addr: "localhost:6379",
 	})
 
 	mux.HandleFunc("/like", func(w http.ResponseWriter, r *http.Request){
