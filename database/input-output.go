@@ -2,6 +2,7 @@ package main
 
 import(
 	"os"
+	"bufio"
 	"database/sql"
 	"fmt"
 	"net/http"
@@ -21,8 +22,11 @@ func main(){
 			db.Exec("INSERT INTO notes VALUES (?)", text)
 		}
 
-		file := os.OpenFile("test.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		fmt.Fprint(file, text)
+		file, err := os.OpenFile("test.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil{
+			fmt.Print("Error: ", err)
+		}
+		fmt.Fprintln(file, text)
 
 		fmt.Fprint(w, `
 		<form method="POST">
