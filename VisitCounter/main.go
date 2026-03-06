@@ -16,21 +16,31 @@ var(
 )
 
 func main(){
-	db, _ = sql.Open("mysql", "root:123@tcp(127.0.0.1:3306)/todo_db")
+	var err error
+	db, err = sql.Open("mysql", "root:123@tcp(127.0.0.1:3306)/todo_db")
+	if err != nil{
+		return fmt.Print("Error: ", err)
+	}
 	rdb = redis.NewClient(&redis.Options{
 	Addr: "localhost:6379",
 	})
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
-	views, _ := rdb.Incr(ctx, "main_page_views").Result()
+	views, err := rdb.Incr(ctx, "main_page_views").Result()
+	if err != nil{
+		http.Error(w, "Redis Error: ", err)
+	}
 	fmt.Fprintf(w, "<p>This page has been viewed %d times (data from Redis)</p>", views)
 	fmt.Fprint(w, "<a href='/sync'><button>Save to database</button>")
 	})
 
 	http.HandleFunc("/sync", func(w http.ResponseWriter, r *http.Request){
-	views, _ := rdb.Get(ctx, "main_page_views").Int()
+	views, err := rdb.Get(ctx, "main_page_views").Int()
+	if err != nil{
+		return fmt.Println(w, "Error: ", err)
+	}
 
-	_, err := db.Exec("INSERT INTO page_stats (page_name, views) VALUES ('main', ?) ON DUPLICATE KEY UPDATE views = ?", views, views)
+	_, err = db.Exec("INSERT INTO page_stats (page_name, views) VALUES ('main', ?) ON DUPLICATE KEY UPDATE views = ?", views, views)
 	if err != nil{
 		http.Error(w, err.Error(), 500)
 		return
