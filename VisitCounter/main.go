@@ -16,6 +16,7 @@ var(
 )
 
 func main(){
+	mux := http.NewServeMux()
 	var err error
 	db, err = sql.Open("mysql", "root:123@tcp(127.0.0.1:3306)/todo_db")
 	if err != nil{
@@ -26,7 +27,7 @@ func main(){
 	Addr: "localhost:6379",
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request){
 	views, err := rdb.Incr(ctx, "main_page_views").Result()
 	if err != nil{
 		http.Error(w, "Redis Error: ", err)
@@ -35,7 +36,7 @@ func main(){
 	fmt.Fprint(w, "<a href='/sync'><button>Save to database</button>")
 	})
 
-	http.HandleFunc("/sync", func(w http.ResponseWriter, r *http.Request){
+	mux.HandleFunc("/sync", func(w http.ResponseWriter, r *http.Request){
 	views, err := rdb.Get(ctx, "main_page_views").Int()
 	if err != nil{
 	http.Error(w, "Error: ", 500)
@@ -50,5 +51,5 @@ func main(){
 	fmt.Fprint(w, "Data saved <a href='/'>Back</a>")
 	})
 	fmt.Println("Server running")
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
 }
