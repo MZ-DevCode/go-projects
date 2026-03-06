@@ -19,7 +19,8 @@ func main(){
 	var err error
 	db, err = sql.Open("mysql", "root:123@tcp(127.0.0.1:3306)/todo_db")
 	if err != nil{
-		return fmt.Print("Error: ", err)
+		fmt.Println("Error: ", err)
+		return
 	}
 	rdb = redis.NewClient(&redis.Options{
 	Addr: "localhost:6379",
@@ -37,7 +38,8 @@ func main(){
 	http.HandleFunc("/sync", func(w http.ResponseWriter, r *http.Request){
 	views, err := rdb.Get(ctx, "main_page_views").Int()
 	if err != nil{
-		return fmt.Println(w, "Error: ", err)
+	http.Error(w, "Error: ", 500)
+	return
 	}
 
 	_, err = db.Exec("INSERT INTO page_stats (page_name, views) VALUES ('main', ?) ON DUPLICATE KEY UPDATE views = ?", views, views)
