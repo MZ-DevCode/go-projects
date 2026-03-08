@@ -5,17 +5,11 @@ import(
 	"fmt"
 )
 
-type Message struct {
-	User	string `json:"user"`
-	Text	string `json:"message"`
-	Status	string `json:"code"`
-}
 func main() {
-	myPost := Message{
-		User: "John",
-		Text: "Hello, World!",
-		Status: "200",
-	}
-	jsonData, _ := json.Marshal(myPost)
-	fmt.Println(string(jsonData))
+	jsonText := `{"name":"John", "age":25}`
+
+	var data map[string]interface{}
+	json.Unmarshal([]byte(jsonText), &data)
+
+fmt.Println(data["name"])
 }
