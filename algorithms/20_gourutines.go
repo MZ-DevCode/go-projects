@@ -5,17 +5,28 @@ import (
 	"sync"
 )
 
-func say(text string, wg *sync.WaitGroup){
+func say(text string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	for i := 0; i < 5; i++{
-		fmt.Println(i+1, " - ", text)
+	for i := 0; i < 5; i++ {
+		fmt.Println(i+1, "-", text)
 	}
 }
 
-func main(){
+func test(a, b int, wg *sync.WaitGroup) {
+	defer wg.Done()
+	res := a + b
+	fmt.Println("Результат теста:", res)
+}
+
+func main() {
 	var wg sync.WaitGroup
-	wg.Add(1)
-	go say("I work in a goroutine", &wg)
+
+	wg.Add(2)
+
+	go say("goroutines", &wg)
+	go test(5, 10, &wg)
+
 	wg.Wait()
-	fmt.Println("All tasks are done")
+
+	fmt.Println("Все задачи выполнены, main завершается")
 }
