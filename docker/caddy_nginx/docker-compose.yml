@@ -1,0 +1,11 @@
+version: '3'
+services:
+  web_backend:
+    image: nginx:alpine
+
+  web_proxy:
+    image: caddy:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
