@@ -1,10 +1,10 @@
-version: '3'
-
 services:
-  caddy-service:
+  caddy:
     image: caddy:alpine
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./index.html:/usr/share/caddy/index.html
       - ./Caddyfile:/etc/caddy/Caddyfile
+
