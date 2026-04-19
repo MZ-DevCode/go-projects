@@ -18,11 +18,13 @@ var tasks = []Task{
 func main(){
 	mux := http.NewServeMux()
 	mux.HandleFunc("/all", func(w http.ResponseWriter, r *http.Request){
+		w.Header().Set("Server", "Go server")
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(tasks)
 	})
 
 	mux.HandleFunc("/add", func(w http.ResponseWriter, r *http.Request){
+              	w.Header().Set("Server", "Go server")
 		val := r.URL.Query().Get("text")
 		newTask := Task{
 			ID: len(tasks) + 1,
