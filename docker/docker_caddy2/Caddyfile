@@ -1,0 +1,10 @@
+localhost {
+    root * /usr/share/caddy
+    file_server browse
+
+    handle /admin/* {
+        uri strip_prefix /admin
+        root * /usr/share/caddy/secret
+        file_server browse
+    }
+}
