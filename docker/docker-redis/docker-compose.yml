@@ -7,6 +7,14 @@ services:
     environment:
       - DB_HOST=redis_db
     read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /var/log/nginx
+
   redis_db:
     image: redis:alpine
     read_only: true
+    tmpfs:
+      - /var/run/redis
+      - /tmp
