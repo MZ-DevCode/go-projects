@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StudyLog — Журнал обучения</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0f1117;
+    --bg2:      #161b27;
+    --bg3:      #1e2534;
+    --border:   #2a3245;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --accent:   #7c3aed;
+    --accent2:  #a78bfa;
+    --green:    #10b981;
+    --yellow:   #f59e0b;
+    --red:      #ef4444;
+    --blue:     #3b82f6;
+    --radius:   10px;
+    --font:     'Inter', system-ui, sans-serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .app { display: flex; min-height: 100vh; }
+
+  .sidebar {
+    width: 240px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo h1 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent2);
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--muted); font-size: 0.75rem; font-weight: 400; display: block; margin-top: 2px; }
+
+  nav { padding: 12px 0; flex: 1; }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0;
+    transition: all 0.15s;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+  }
+  nav a:hover { color: var(--text); background: var(--bg3); }
+  nav a.active { color: var(--accent2); background: rgba(124,58,237,0.1); border-left-color: var(--accent); }
+  nav a .icon { font-size: 1rem; width: 18px; text-align: center; }
+
+  .sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--border); }
+  .sidebar-footer .version { font-size: 0.7rem; color: var(--muted); }
+
+  .main {
+    margin-left: 240px;
+    flex: 1;
+    padding: 32px;
+    max-width: calc(100vw - 240px);
+  }
+
+  /* ── Page Header ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .page-title { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .page-subtitle { color: var(--muted); font-size: 0.875rem; margin-top: 2px; }
+
+  /* ── Cards / Panels ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+  }
+  .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-value { font-size: 2rem; font-weight: 700; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
+  .stat-value.purple { color: var(--accent2); }
+  .stat-value.green  { color: var(--green); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-value.blue   { color: var(--blue); }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .table-header h3 { font-size: 0.95rem; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg3); }
+  tbody td { padding: 12px 16px; font-size: 0.875rem; vertical-align: middle; }
+
+  /* ── Score Badge ── */
+  .score-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+  }
+  .score-badge.high  { background: rgba(16,185,129,0.15); color: var(--green); }
+  .score-badge.mid   { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .score-badge.low   { background: rgba(239,68,68,0.15);  color: var(--red); }
+
+  /* ── Status Badge ── */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .status-done        { background: rgba(16,185,129,0.15); color: var(--green); }
+  .status-done::before { background: var(--green); }
+  .status-in_progress { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .status-in_progress::before { background: var(--yellow); }
+  .status-planned     { background: rgba(100,116,139,0.15); color: var(--muted); }
+  .status-planned::before { background: var(--muted); }
+
+  /* ── Topic Tooltip ── */
+  .topic-cell { position: relative; cursor: default; }
+  .topic-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    color: var(--accent2);
+    border-bottom: 1px dashed rgba(167,139,250,0.4);
+    display: inline-block;
+  }
+  .tooltip {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 6px);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    width: 280px;
+    z-index: 200;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+  .tooltip::before {
+    content: '';
+    position: absolute;
+    top: -5px; left: 16px;
+    width: 8px; height: 8px;
+    background: var(--bg3);
+    border-left: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    transform: rotate(45deg);
+  }
+  .topic-cell:hover .tooltip { display: block; }
+  .tooltip-title { font-weight: 600; font-size: 0.875rem; margin-bottom: 6px; }
+  .tooltip-body  { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+  .tooltip-meta  { font-size: 0.72rem; color: var(--muted); margin-top: 8px; display: flex; gap: 10px; }
+  .tooltip-meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* ── Subject Dot ── */
+  .subject-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.875rem;
+  }
+  .subject-dot::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--c, #6366f1);
+    flex-shrink: 0;
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .btn-primary  { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #6d28d9; }
+  .btn-ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+  .btn-danger   { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-danger:hover { background: rgba(239,68,68,0.1); }
+  .btn-sm { padding: 5px 10px; font-size: 0.78rem; }
+  .btn-icon { padding: 6px 8px; }
+
+  .actions-cell { display: flex; gap: 6px; }
+
+  /* ── Progress bar ── */
+  .progress-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
+  }
+  .progress-text { font-size: 0.75rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; min-width: 36px; text-align: right; }
+
+  /* ── Subject Cards ── */
+  .subjects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .subject-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    border-top: 3px solid var(--c, #6366f1);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .subject-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .subject-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .subject-card-title  { font-weight: 600; font-size: 0.95rem; }
+  .subject-card-desc   { font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+  .subject-card-stats  { display: flex; gap: 16px; }
+  .subject-stat        { font-size: 0.78rem; color: var(--muted); }
+  .subject-stat strong { color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 300;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    width: 520px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn { from { opacity: 0; transform: translateY(-12px) scale(0.98); } to { opacity: 1; transform: none; } }
+  .modal-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; }
+  .modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
+
+  /* ── Form ── */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 0.8rem; font-weight: 500; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .form-control {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.875rem;
+    padding: 9px 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-control:focus { border-color: var(--accent); }
+  textarea.form-control { resize: vertical; min-height: 80px; }
+  select.form-control option { background: var(--bg3); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ── Color Picker ── */
+  .color-picker-wrap { display: flex; align-items: center; gap: 10px; }
+  input[type=color] {
+    width: 36px; height: 36px;
+    border: 2px solid var(--border);
+    border-radius: 7px;
+    padding: 2px;
+    background: var(--bg3);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 2px; margin-bottom: 20px; background: var(--bg2); padding: 4px; border-radius: 9px; border: 1px solid var(--border); width: fit-content; }
+  .tab {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tab.active { background: var(--bg3); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+  /* ── Filter row ── */
+  .filter-row { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .filter-row select, .filter-row input { max-width: 200px; }
+
+  /* ── Misc ── */
+  .section { display: none; }
+  .section.active { display: block; }
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); }
+  .empty-state .emoji { font-size: 2.5rem; margin-bottom: 10px; }
+  .tag { display: inline-block; font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; background: var(--bg3); color: var(--muted); }
+  .mb-4 { margin-bottom: 16px; }
+  .flex { display: flex; }
+  .gap-2 { gap: 8px; }
+  .items-center { align-items: center; }
+  .toast {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px 18px;
+    font-size: 0.875rem;
+    z-index: 500;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: none; }
+  .toast.ok   { border-left: 3px solid var(--green); }
+  .toast.err  { border-left: 3px solid var(--red); }
+
+  /* chart area */
+  .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .chart-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .chart-box h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 16px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .bar-label { font-size: 0.78rem; width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+  .bar-bg { flex: 1; height: 8px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+  .bar-val { font-size: 0.75rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); min-width: 32px; text-align: right; }
+
+  .donut-wrap { display: flex; align-items: center; justify-content: center; gap: 24px; }
+  .legend { display: flex; flex-direction: column; gap: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>📚 StudyLog</h1>
+      <span>Журнал прогресса</span>
+    </div>
+    <nav>
+      <a class="active" onclick="showSection('dashboard')" data-s="dashboard"><span class="icon">🏠</span> Дашборд</a>
+      <a onclick="showSection('subjects')"  data-s="subjects"><span class="icon">📖</span> Предметы</a>
+      <a onclick="showSection('grades')"    data-s="grades"><span class="icon">🎯</span> Оценки</a>
+      <a onclick="showSection('topics')"    data-s="topics"><span class="icon">📝</span> Темы</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="version">StudyLog v1.0 · SQLite</div>
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <!-- ════ DASHBOARD ════ -->
+    <section id="sec-dashboard" class="section active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Дашборд</div>
+          <div class="page-subtitle">Общая картина вашего прогресса</div>
+        </div>
+        <button class="btn btn-primary" onclick="refreshAll()">🔄 Обновить</button>
+      </div>
+
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card"><div class="stat-label">Предметов</div><div class="stat-value purple" id="stat-subjects">—</div></div>
+        <div class="stat-card"><div class="stat-label">Пройдено тем</div><div class="stat-value green" id="stat-done">—</div></div>
+        <div class="stat-card"><div class="stat-label">Всего тем</div><div class="stat-value yellow" id="stat-topics">—</div></div>
+        <div class="stat-card"><div class="stat-label">Средний балл</div><div class="stat-value blue" id="stat-avg">—</div></div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-box">
+          <h4>Баллы по предметам</h4>
+          <div id="chart-scores"></div>
+        </div>
+        <div class="chart-box">
+          <h4>Прогресс тем</h4>
+          <div class="donut-wrap">
+            <svg id="donut-svg" width="120" height="120" viewBox="0 0 120 120"></svg>
+            <div class="legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Последние оценки</h3>
+          <button class="btn btn-ghost btn-sm" onclick="showSection('grades')">Все оценки →</button>
+        </div>
+        <table>
+          <thead><tr><th>Предмет</th><th>Тема</th><th>Оценка</th><th>Дата</th></tr></thead>
+          <tbody id="dash-grades"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ════ SUBJECTS ════ -->
+    <section id="sec-subjects" class="section">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Предметы</div>
+          <div class="page-subtitle">Управление дисциплинами</div>
+        </div>
+        <button class="btn btn-primary" onclick="openSubjectModal()">+ Добавить предмет</button>
+      </div>
+      <div class="subjects-grid" id="subjects-grid"></div>
+    </section>
+
+    <!-- ════ GRADES ════ -->
+    <section id="sec-grades" class="section">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Оценки</div>
+          <div class="page-subtitle">Журнал всех оценок</div>
+        </div>
+        <button class="btn btn-primary" onclick="openGradeModal()">+ Добавить оценку</button>
+      </div>
+
+      <div class="filter-row">
+        <select class="form-control" id="filter-grade-subject" onchange="renderGrades()">
+          <option value="">Все предметы</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Предмет</th><th>Тема</th><th>Оценка</th><th>Дата</th><th style="width:100px"></th></tr></thead>
+          <tbody id="grades-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ════ TOPICS ════ -->
+    <section id="sec-topics" class="section">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Темы</div>
+          <div class="page-subtitle">Что изучаете, что изучили</div>
+        </div>
+        <button class="btn btn-primary" onclick="openTopicModal()">+ Добавить тему</button>
+      </div>
+
+      <div class="filter-row">
+        <select class="form-control" id="filter-topic-subject" onchange="renderTopics()">
+          <option value="">Все предметы</option>
+        </select>
+        <select class="form-control" id="filter-topic-status" onchange="renderTopics()">
+          <option value="">Все статусы</option>
+          <option value="planned">Запланировано</option>
+          <option value="in_progress">В процессе</option>
+          <option value="done">Пройдено</option>
+        </select>
+      </div>
+
+      <div class="tabs" id="topics-view-tabs">
+        <button class="tab active" onclick="setTopicsView('table', this)">📋 Список</button>
+        <button class="tab" onclick="setTopicsView('kanban', this)">📊 Канбан</button>
+      </div>
+
+      <div id="topics-table-view">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Предмет</th><th>Тема</th><th>Статус</th><th>Дата</th><th style="width:100px"></th></tr></thead>
+            <tbody id="topics-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="topics-kanban-view" style="display:none">
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px">
+          <div>
+            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;">📅 Запланировано</div>
+            <div id="kanban-planned" style="display:flex;flex-direction:column;gap:8px;min-height:80px"></div>
+          </div>
+          <div>
+            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--yellow);margin-bottom:10px;">⚡ В процессе</div>
+            <div id="kanban-in_progress" style="display:flex;flex-direction:column;gap:8px;min-height:80px"></div>
+          </div>
+          <div>
+            <div style="font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:10px;">✅ Пройдено</div>
+            <div id="kanban-done" style="display:flex;flex-direction:column;gap:8px;min-height:80px"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ════ MODALS ════ -->
+
+<!-- Subject Modal -->
+<div class="modal-overlay" id="modal-subject">
+  <div class="modal">
+    <div class="modal-title" id="modal-subject-title">Новый предмет</div>
+    <input type="hidden" id="subject-id">
+    <div class="form-group">
+      <label class="form-label">Название</label>
+      <input type="text" class="form-control" id="subject-name" placeholder="например, Go (Golang)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Описание</label>
+      <textarea class="form-control" id="subject-desc" rows="3" placeholder="Что будете изучать..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Цвет</label>
+      <div class="color-picker-wrap">
+        <input type="color" id="subject-color" value="#6366f1">
+        <span class="form-control" id="subject-color-text" style="flex:1;cursor:pointer" onclick="document.getElementById('subject-color').click()">#6366f1</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-subject')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveSubject()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Grade Modal -->
+<div class="modal-overlay" id="modal-grade">
+  <div class="modal">
+    <div class="modal-title" id="modal-grade-title">Добавить оценку</div>
+    <input type="hidden" id="grade-id">
+    <div class="form-group">
+      <label class="form-label">Предмет</label>
+      <select class="form-control" id="grade-subject"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Тема</label>
+      <input type="text" class="form-control" id="grade-topic" placeholder="Горутины и каналы">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Оценка</label>
+        <input type="number" class="form-control" id="grade-score" min="0" max="100" value="8">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Максимум</label>
+        <input type="number" class="form-control" id="grade-max" min="1" max="100" value="10">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Дата</label>
+      <input type="date" class="form-control" id="grade-date">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Подробности</label>
+      <textarea class="form-control" id="grade-details" rows="3" placeholder="Что именно делал, какие были сложности..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-grade')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveGrade()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Topic Modal -->
+<div class="modal-overlay" id="modal-topic">
+  <div class="modal">
+    <div class="modal-title" id="modal-topic-title">Новая тема</div>
+    <input type="hidden" id="topic-id">
+    <div class="form-group">
+      <label class="form-label">Предмет</label>
+      <select class="form-control" id="topic-subject"></select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Название темы</label>
+      <input type="text" class="form-control" id="topic-title" placeholder="Сортировка слиянием (Merge Sort)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Содержание / заметки</label>
+      <textarea class="form-control" id="topic-content" rows="4" placeholder="Что нужно изучить, ссылки на материалы, ключевые концепции..."></textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Статус</label>
+        <select class="form-control" id="topic-status">
+          <option value="planned">Запланировано</option>
+          <option value="in_progress">В процессе</option>
+          <option value="done">Пройдено</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Дата</label>
+        <input type="date" class="form-control" id="topic-date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-topic')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveTopic()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────────
+let subjects = [], grades = [], topics = [], stats = {};
+let topicsView = 'table';
+
+// ── API ────────────────────────────────────────────────────────────────────────
+const api = {
+  async get(path)         { const r = await fetch(path); return r.json(); },
+  async post(path, body)  { const r = await fetch(path, {method:'POST',  headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}); return r.json(); },
+  async put(path, body)   { const r = await fetch(path, {method:'PUT',   headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)}); return r.json(); },
+  async del(path)         { const r = await fetch(path, {method:'DELETE'}); return r.json(); },
+};
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+async function refreshAll() {
+  [subjects, grades, topics, stats] = await Promise.all([
+    api.get('/api/subjects'),
+    api.get('/api/grades'),
+    api.get('/api/topics'),
+    api.get('/api/stats'),
+  ]);
+  subjects = subjects || [];
+  grades   = grades   || [];
+  topics   = topics   || [];
+  renderAll();
+}
+
+function renderAll() {
+  renderStats();
+  renderDashGrades();
+  renderSubjectsGrid();
+  renderGrades();
+  renderTopics();
+  renderCharts();
+  populateSubjectSelects();
+}
+
+// ── Nav ────────────────────────────────────────────────────────────────────────
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('sec-' + name).classList.add('active');
+  document.querySelector(`[data-s="${name}"]`).classList.add('active');
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────────────
+function renderStats() {
+  document.getElementById('stat-subjects').textContent = stats.TotalSubjects || 0;
+  document.getElementById('stat-done').textContent     = stats.DoneTopics    || 0;
+  document.getElementById('stat-topics').textContent   = stats.TotalTopics   || 0;
+  document.getElementById('stat-avg').textContent      = (stats.AvgScore || 0).toFixed(1);
+}
+
+// ── Dashboard Grades ──────────────────────────────────────────────────────────
+function renderDashGrades() {
+  const tb = document.getElementById('dash-grades');
+  const recent = grades.slice(0, 8);
+  if (!recent.length) { tb.innerHTML = '<tr><td colspan="4" class="empty-state"><div class="emoji">🎯</div><div>Оценок пока нет</div></td></tr>'; return; }
+  tb.innerHTML = recent.map(g => {
+    const sub = subjects.find(s => s.id === g.subject_id) || {};
+    return `<tr>
+      <td><span class="subject-dot" style="--c:${sub.color||'#6366f1'}">${g.subject_name}</span></td>
+      <td><div class="topic-cell">
+        <span class="topic-name">${g.topic || '—'}</span>
+        ${g.details || g.topic ? tooltipHtml(g.topic, g.details, g.date, '') : ''}
+      </div></td>
+      <td>${scoreBadge(g.score, g.max_score)}</td>
+      <td style="color:var(--muted);font-size:.8rem">${formatDate(g.date)}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Subjects Grid ─────────────────────────────────────────────────────────────
+function renderSubjectsGrid() {
+  const grid = document.getElementById('subjects-grid');
+  if (!subjects.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="emoji">📖</div><div>Добавьте первый предмет!</div></div>`;
+    return;
+  }
+  grid.innerHTML = subjects.map(s => {
+    const sGrades = grades.filter(g => g.subject_id === s.id);
+    const sTopics = topics.filter(t => t.subject_id === s.id);
+    const done    = sTopics.filter(t => t.status === 'done').length;
+    const avg     = sGrades.length ? (sGrades.reduce((a,g) => a + g.score/g.max_score*10, 0) / sGrades.length).toFixed(1) : '—';
+    const prog    = sTopics.length ? Math.round(done/sTopics.length*100) : 0;
+    return `<div class="subject-card" style="--c:${s.color}">
+      <div class="subject-card-header">
+        <div class="subject-card-title">${s.name}</div>
+        <div class="flex gap-2">
+          <button class="btn btn-ghost btn-sm btn-icon" title="Редактировать" onclick="editSubject(${s.id})">✏️</button>
+          <button class="btn btn-danger btn-sm btn-icon" title="Удалить" onclick="deleteSubject(${s.id})">🗑</button>
+        </div>
+      </div>
+      <div class="subject-card-desc">${s.description || '<span style="color:var(--muted)">Описание не указано</span>'}</div>
+      <div class="progress-wrap" style="margin-bottom:12px">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${prog}%;background:${s.color}"></div></div>
+        <div class="progress-text">${prog}%</div>
+      </div>
+      <div class="subject-card-stats">
+        <div class="subject-stat">Тем: <strong>${done}/${sTopics.length}</strong></div>
+        <div class="subject-stat">Оценок: <strong>${sGrades.length}</strong></div>
+        <div class="subject-stat">Средний: <strong>${avg}</strong></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Grades Table ──────────────────────────────────────────────────────────────
+function renderGrades() {
+  const filter = document.getElementById('filter-grade-subject').value;
+  const tb = document.getElementById('grades-tbody');
+  let list = filter ? grades.filter(g => g.subject_id == filter) : grades;
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="emoji">🎯</div><div>Нет оценок</div></td></tr>'; return; }
+  tb.innerHTML = list.map(g => {
+    const sub = subjects.find(s => s.id === g.subject_id) || {};
+    return `<tr>
+      <td><span class="subject-dot" style="--c:${sub.color||'#6366f1'}">${g.subject_name}</span></td>
+      <td><div class="topic-cell">
+        <span class="topic-name">${g.topic || '—'}</span>
+        ${tooltipHtml(g.topic, g.details, g.date, g.created_at)}
+      </div></td>
+      <td>${scoreBadge(g.score, g.max_score)}</td>
+      <td style="color:var(--muted);font-size:.8rem">${formatDate(g.date)}</td>
+      <td><div class="actions-cell">
+        <button class="btn btn-ghost btn-sm" onclick="editGrade(${g.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteGrade(${g.id})">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Topics ────────────────────────────────────────────────────────────────────
+function setTopicsView(view, btn) {
+  topicsView = view;
+  document.querySelectorAll('#topics-view-tabs .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('topics-table-view').style.display  = view === 'table'  ? '' : 'none';
+  document.getElementById('topics-kanban-view').style.display = view === 'kanban' ? '' : 'none';
+}
+
+function renderTopics() {
+  const filterSub    = document.getElementById('filter-topic-subject').value;
+  const filterStatus = document.getElementById('filter-topic-status').value;
+  let list = topics;
+  if (filterSub)    list = list.filter(t => t.subject_id == filterSub);
+  if (filterStatus) list = list.filter(t => t.status === filterStatus);
+
+  // Table view
+  const tb = document.getElementById('topics-tbody');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="emoji">📝</div><div>Нет тем</div></td></tr>'; }
+  else tb.innerHTML = list.map(t => {
+    const sub = subjects.find(s => s.id === t.subject_id) || {};
+    return `<tr>
+      <td><span class="subject-dot" style="--c:${sub.color||'#6366f1'}">${t.subject_name}</span></td>
+      <td><div class="topic-cell">
+        <span class="topic-name">${t.title}</span>
+        ${tooltipHtml(t.title, t.content, t.date, t.created_at)}
+      </div></td>
+      <td><span class="status-badge status-${t.status}">${statusLabel(t.status)}</span></td>
+      <td style="color:var(--muted);font-size:.8rem">${formatDate(t.date)}</td>
+      <td><div class="actions-cell">
+        <button class="btn btn-ghost btn-sm" onclick="editTopic(${t.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteTopic(${t.id})">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  // Kanban view
+  ['planned','in_progress','done'].forEach(st => {
+    const col = document.getElementById('kanban-' + st);
+    const colList = list.filter(t => t.status === st);
+    if (!colList.length) { col.innerHTML = '<div style="font-size:.78rem;color:var(--muted);text-align:center;padding:12px">Нет тем</div>'; return; }
+    col.innerHTML = colList.map(t => {
+      const sub = subjects.find(s => s.id === t.subject_id) || {};
+      return `<div class="card" style="padding:12px;border-left:3px solid ${sub.color||'#6366f1'};cursor:pointer" onclick="editTopic(${t.id})">
+        <div style="font-size:.85rem;font-weight:600;margin-bottom:4px">${t.title}</div>
+        <div style="font-size:.75rem;color:var(--muted)">${t.subject_name} · ${formatDate(t.date)}</div>
+        ${t.content ? `<div style="font-size:.75rem;color:var(--muted);margin-top:6px;line-height:1.4">${t.content.slice(0,80)}${t.content.length>80?'…':''}</div>` : ''}
+      </div>`;
+    }).join('');
+  });
+}
+
+// ── Charts ────────────────────────────────────────────────────────────────────
+function renderCharts() {
+  // Bars: avg score per subject
+  const el = document.getElementById('chart-scores');
+  if (!subjects.length) { el.innerHTML = '<div style="color:var(--muted);font-size:.8rem">Нет данных</div>'; }
+  else {
+    el.innerHTML = subjects.map(s => {
+      const sg = grades.filter(g => g.subject_id === s.id);
+      const avg = sg.length ? sg.reduce((a,g) => a + g.score/g.max_score*10, 0)/sg.length : 0;
+      const pct = avg/10*100;
+      return `<div class="bar-row">
+        <div class="bar-label">${s.name}</div>
+        <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${s.color}"></div></div>
+        <div class="bar-val">${avg.toFixed(1)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Donut: topics by status
+  const done = topics.filter(t => t.status==='done').length;
+  const inpr = topics.filter(t => t.status==='in_progress').length;
+  const plan = topics.filter(t => t.status==='planned').length;
+  const total = topics.length || 1;
+  const donutData = [
+    {label:'Пройдено',  val:done, color:'#10b981'},
+    {label:'В процессе',val:inpr, color:'#f59e0b'},
+    {label:'Запланировано',val:plan, color:'#475569'},
+  ];
+  let angle = -Math.PI/2;
+  const svg = document.getElementById('donut-svg');
+  const cx=60,cy=60,r=48,inner=30;
+  let paths = '';
+  donutData.forEach(d => {
+    if(!d.val) return;
+    const sweep = (d.val/total)*Math.PI*2;
+    const x1=cx+r*Math.cos(angle), y1=cy+r*Math.sin(angle);
+    const x2=cx+r*Math.cos(angle+sweep), y2=cy+r*Math.sin(angle+sweep);
+    const xi1=cx+inner*Math.cos(angle), yi1=cy+inner*Math.sin(angle);
+    const xi2=cx+inner*Math.cos(angle+sweep), yi2=cy+inner*Math.sin(angle+sweep);
+    const large = sweep>Math.PI?1:0;
+    paths += `<path d="M${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} L${xi2},${yi2} A${inner},${inner} 0 ${large},0 ${xi1},${yi1} Z" fill="${d.color}" opacity="0.85"/>`;
+    angle += sweep;
+  });
+  svg.innerHTML = paths || `<circle cx="60" cy="60" r="48" fill="none" stroke="var(--border)" stroke-width="18"/>`;
+  document.getElementById('donut-legend').innerHTML = donutData.map(d =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${d.color}"></div><span>${d.label}: ${d.val}</span></div>`
+  ).join('');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function tooltipHtml(title, details, date, created) {
+  if (!title && !details) return '';
+  return `<div class="tooltip">
+    <div class="tooltip-title">${title||'—'}</div>
+    ${details ? `<div class="tooltip-body">${details}</div>` : ''}
+    <div class="tooltip-meta">
+      ${date ? `<span>📅 ${formatDate(date)}</span>` : ''}
+    </div>
+  </div>`;
+}
+
+function scoreBadge(score, max) {
+  const pct = score/max;
+  const cls = pct>=0.8?'high':pct>=0.5?'mid':'low';
+  return `<span class="score-badge ${cls}">${score}/${max}</span>`;
+}
+
+function statusLabel(s) {
+  return {planned:'Запланировано', in_progress:'В процессе', done:'Пройдено'}[s] || s;
+}
+
+function formatDate(d) {
+  if (!d) return '—';
+  try { return new Date(d + 'T00:00:00').toLocaleDateString('ru-RU', {day:'numeric',month:'short',year:'numeric'}); } catch { return d; }
+}
+
+function populateSubjectSelects() {
+  const opts = subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  ['grade-subject','topic-subject','filter-grade-subject','filter-topic-subject'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isFilter = id.startsWith('filter');
+    el.innerHTML = (isFilter ? '<option value="">Все предметы</option>' : '') + opts;
+  });
+}
+
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  setTimeout(() => { el.className = 'toast'; }, 2500);
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+document.querySelectorAll('.modal-overlay').forEach(mo => {
+  mo.addEventListener('click', e => { if (e.target === mo) mo.classList.remove('show'); });
+});
+
+// ── Subject CRUD ──────────────────────────────────────────────────────────────
+function openSubjectModal(sub) {
+  document.getElementById('modal-subject-title').textContent = sub ? 'Редактировать предмет' : 'Новый предмет';
+  document.getElementById('subject-id').value   = sub ? sub.id : '';
+  document.getElementById('subject-name').value = sub ? sub.name : '';
+  document.getElementById('subject-desc').value = sub ? sub.description : '';
+  const c = sub ? sub.color : '#6366f1';
+  document.getElementById('subject-color').value      = c;
+  document.getElementById('subject-color-text').textContent = c;
+  openModal('modal-subject');
+}
+document.getElementById('subject-color').addEventListener('input', e => {
+  document.getElementById('subject-color-text').textContent = e.target.value;
+});
+
+async function saveSubject() {
+  const id   = document.getElementById('subject-id').value;
+  const name = document.getElementById('subject-name').value.trim();
+  if (!name) { toast('Укажите название предмета', 'err'); return; }
+  const body = { id: id ? parseInt(id) : undefined, name, description: document.getElementById('subject-desc').value, color: document.getElementById('subject-color').value };
+  if (id) { await api.put('/api/subjects', body); toast('Предмет обновлён'); }
+  else     { await api.post('/api/subjects', body); toast('Предмет добавлен'); }
+  closeModal('modal-subject');
+  await refreshAll();
+}
+
+function editSubject(id) {
+  const s = subjects.find(x => x.id === id);
+  if (s) openSubjectModal(s);
+}
+
+async function deleteSubject(id) {
+  if (!confirm('Удалить предмет и все его оценки/темы?')) return;
+  await api.del('/api/subjects?id=' + id);
+  toast('Предмет удалён');
+  await refreshAll();
+}
+
+// ── Grade CRUD ────────────────────────────────────────────────────────────────
+function openGradeModal(g) {
+  document.getElementById('modal-grade-title').textContent = g ? 'Редактировать оценку' : 'Добавить оценку';
+  document.getElementById('grade-id').value      = g ? g.id : '';
+  document.getElementById('grade-subject').value = g ? g.subject_id : (subjects[0]?.id || '');
+  document.getElementById('grade-topic').value   = g ? g.topic : '';
+  document.getElementById('grade-score').value   = g ? g.score : 8;
+  document.getElementById('grade-max').value     = g ? g.max_score : 10;
+  document.getElementById('grade-date').value    = g ? g.date : new Date().toISOString().slice(0,10);
+  document.getElementById('grade-details').value = g ? g.details : '';
+  openModal('modal-grade');
+}
+
+async function saveGrade() {
+  const id = document.getElementById('grade-id').value;
+  const body = {
+    id: id ? parseInt(id) : undefined,
+    subject_id: parseInt(document.getElementById('grade-subject').value),
+    topic:      document.getElementById('grade-topic').value,
+    score:      parseInt(document.getElementById('grade-score').value),
+    max_score:  parseInt(document.getElementById('grade-max').value),
+    date:       document.getElementById('grade-date').value,
+    details:    document.getElementById('grade-details').value,
+  };
+  if (!body.subject_id) { toast('Выберите предмет', 'err'); return; }
+  if (id) { await api.put('/api/grades', body); toast('Оценка обновлена'); }
+  else     { await api.post('/api/grades', body); toast('Оценка добавлена'); }
+  closeModal('modal-grade');
+  await refreshAll();
+}
+
+function editGrade(id) {
+  const g = grades.find(x => x.id === id);
+  if (g) openGradeModal(g);
+}
+
+async function deleteGrade(id) {
+  if (!confirm('Удалить оценку?')) return;
+  await api.del('/api/grades?id=' + id);
+  toast('Оценка удалена');
+  await refreshAll();
+}
+
+// ── Topic CRUD ────────────────────────────────────────────────────────────────
+function openTopicModal(t) {
+  document.getElementById('modal-topic-title').textContent = t ? 'Редактировать тему' : 'Новая тема';
+  document.getElementById('topic-id').value      = t ? t.id : '';
+  document.getElementById('topic-subject').value = t ? t.subject_id : (subjects[0]?.id || '');
+  document.getElementById('topic-title').value   = t ? t.title : '';
+  document.getElementById('topic-content').value = t ? t.content : '';
+  document.getElementById('topic-status').value  = t ? t.status : 'planned';
+  document.getElementById('topic-date').value    = t ? t.date : new Date().toISOString().slice(0,10);
+  openModal('modal-topic');
+}
+
+async function saveTopic() {
+  const id = document.getElementById('topic-id').value;
+  const title = document.getElementById('topic-title').value.trim();
+  if (!title) { toast('Укажите название темы', 'err'); return; }
+  const body = {
+    id: id ? parseInt(id) : undefined,
+    subject_id: parseInt(document.getElementById('topic-subject').value),
+    title,
+    content:    document.getElementById('topic-content').value,
+    status:     document.getElementById('topic-status').value,
+    date:       document.getElementById('topic-date').value,
+  };
+  if (id) { await api.put('/api/topics', body); toast('Тема обновлена'); }
+  else     { await api.post('/api/topics', body); toast('Тема добавлена'); }
+  closeModal('modal-topic');
+  await refreshAll();
+}
+
+function editTopic(id) {
+  const t = topics.find(x => x.id === id);
+  if (t) openTopicModal(t);
+}
+
+async function deleteTopic(id) {
+  if (!confirm('Удалить тему?')) return;
+  await api.del('/api/topics?id=' + id);
+  toast('Тема удалена');
+  await refreshAll();
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+refreshAll();
+</script>
+</body>
+</html>
