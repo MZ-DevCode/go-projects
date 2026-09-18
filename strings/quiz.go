@@ -54,6 +54,6 @@ func main(){
 	percent := ((float64(score) / float64(total)) * 100)
 
 	fmt.Printf("Набрано очков: %d из %d\n", score, total)
-	fmt.Printf("Результат: %.1f%\n", percent)
+	fmt.Printf("Результат: %.1f%%\n", percent)
 	
 }
