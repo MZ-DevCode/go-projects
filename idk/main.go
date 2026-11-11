@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 
 	"google.golang.org/api/tasks/v1"
@@ -30,14 +31,20 @@ func renderHTML(w http.ResponseWriter, r *http.Request) {
 	`
 
 	if r.Method == http.MethodPost {
-		task := r.FormValue("task")
-		tasks = append(tasks, Data{
-			Task: task
+		taskValue := r.FormValue("task")
+		var tasks string = append(tasks, Data{
+			Task: taskValue
 		})
 
-		err, tmpl := template.New("tmpl").Parse(tasks)
-		if err != nil{
-			panic(err)
+		tmpl, err := template.New("todo").Parse(htmlTemplate)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+		}
+
+		err = tmpl.Execute(w, tasks)
+		if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 
 	}
@@ -46,5 +53,8 @@ func renderHTML(w http.ResponseWriter, r *http.Request) {
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", renderHTML)
-	http.ListenAndServe(":8080", mux)
+	err := http.ListenAndServe(":8080", mux)
+	if err != nil{
+		log.Fatal(err)
+	}
 }
