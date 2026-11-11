@@ -1,15 +1,16 @@
 package main
 
 import (
+	"html/template"
 	"log"
 	"net/http"
-
-	"google.golang.org/api/tasks/v1"
 )
 
 type Data struct {
 	Task string
 }
+
+var tasks []Data
 
 func renderHTML(w http.ResponseWriter, r *http.Request) {
 	var html string = `
@@ -21,40 +22,41 @@ func renderHTML(w http.ResponseWriter, r *http.Request) {
 		<body>
 			<ul>
 				{{ range . }}
-				<li>{{ .Tasks }}</li>
+				<li>{{ .Task }}</li>
 				{{end}}
 			</ul>
-			<input type="text" name="task"></input>
-			<input name="add" type="submit">Add task</input>
-		</body>
+			<form method="POST" action="/">
+				<input type="text" name="task">
+				<input name="add" type="submit" value="add">
+			</form>
+			</body>
 		</html>
 	`
 
 	if r.Method == http.MethodPost {
 		taskValue := r.FormValue("task")
-		var tasks string = append(tasks, Data{
-			Task: taskValue
+		tasks = append(tasks, Data{
+			Task: taskValue,
 		})
+	}
+	tmpl, err := template.New("todo").Parse(html)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-		tmpl, err := template.New("todo").Parse(htmlTemplate)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-		}
-
-		err = tmpl.Execute(w, tasks)
-		if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
-
+	err = tmpl.Execute(w, tasks)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", renderHTML)
+	log.Println("Server running on http://localhost:8080")
 	err := http.ListenAndServe(":8080", mux)
-	if err != nil{
+	if err != nil {
 		log.Fatal(err)
 	}
 }
